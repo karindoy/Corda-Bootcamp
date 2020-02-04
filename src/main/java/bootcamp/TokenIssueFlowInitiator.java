@@ -15,6 +15,7 @@ public class TokenIssueFlowInitiator extends FlowLogic<SignedTransaction> {
     private final Party owner;
     private final int amount;
 
+
     public TokenIssueFlowInitiator(Party owner, int amount) {
         this.owner = owner;
         this.amount = amount;
@@ -39,14 +40,18 @@ public class TokenIssueFlowInitiator extends FlowLogic<SignedTransaction> {
          *         TODO 1 - Create our TokenState to represent on-ledger tokens!
          * ===========================================================================*/
         // We create our new TokenState.
-        TokenState tokenState = null;
-
+        TokenState tokenState = new TokenState(issuer, owner, amount);
 
         /* ============================================================================
          *      TODO 3 - Build our token issuance transaction to update the ledger!
          * ===========================================================================*/
         // We build our transaction.
-        TransactionBuilder transactionBuilder = null;
+        TransactionBuilder transactionBuilder = new TransactionBuilder();
+        transactionBuilder.setNotary(notary);
+        transactionBuilder.addOutputState(tokenState, TokenContract.ID);
+
+        TokenContract.Commands.Issue commandData = new TokenContract.Commands.Issue();
+        transactionBuilder.addCommand(commandData, issuer.getOwningKey(), owner.getOwningKey());
 
         /* ============================================================================
          *          TODO 2 - Write our TokenContract to control token issuance!
@@ -55,6 +60,7 @@ public class TokenIssueFlowInitiator extends FlowLogic<SignedTransaction> {
         transactionBuilder.verify(getServiceHub());
 
         FlowSession session = initiateFlow(owner);
+
 
         // We sign the transaction with our private key, making it immutable.
         SignedTransaction signedTransaction = getServiceHub().signInitialTransaction(transactionBuilder);
